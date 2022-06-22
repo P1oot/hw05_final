@@ -122,8 +122,8 @@ def profile_follow(request, username):
     if request.user.is_authenticated:
         author = get_object_or_404(User, username=username)
         if (
-            request.user.username == username or
-            Follow.objects.filter(user=request.user, author=author).exists()
+            request.user.username == username
+            or Follow.objects.filter(user=request.user, author=author).exists()
         ):
             return redirect('posts:profile', username=username)
         Follow.objects.create(user=request.user, author=author)
