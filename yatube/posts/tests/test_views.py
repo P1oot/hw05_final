@@ -47,6 +47,12 @@ class PostVievsTests(TestCase):
     def setUp(self):
         self.post_author = Client()
         self.post_author.force_login(self.auth)
+        self.authorized_client_1 = Client()
+        self.authorized_client_2 = Client()
+        self.user_1 = User.objects.create_user(username='user_1')
+        self.user_2 = User.objects.create_user(username='user_2')
+        self.authorized_client_1.force_login(self.user_1)
+        self.authorized_client_2.force_login(self.user_2)
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -157,12 +163,6 @@ class PostVievsTests(TestCase):
                 self.assertEqual(context, value)
 
     def test_following(self):
-        self.authorized_client_1 = Client()
-        self.authorized_client_2 = Client()
-        self.user_1 = User.objects.create_user(username='user_1')
-        self.user_2 = User.objects.create_user(username='user_2')
-        self.authorized_client_1.force_login(self.user_1)
-        self.authorized_client_2.force_login(self.user_2)
         self.authorized_client_1.get(reverse(
             'posts:profile_follow',
             kwargs={'username': self.post.author.username}

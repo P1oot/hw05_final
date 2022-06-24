@@ -5,9 +5,16 @@ User = get_user_model()
 
 
 class Group(models.Model):
-    title = models.CharField(max_length=200)
+    title = models.CharField(
+        max_length=200,
+        verbose_name='Группа',
+        help_text='Название группы',
+    )
     slug = models.SlugField(unique=True)
-    description = models.TextField()
+    description = models.TextField(
+        verbose_name='Описание',
+        help_text='Описание группы',
+    )
 
     def __str__(self) -> str:
         return self.title
@@ -22,7 +29,9 @@ class Post(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='posts'
+        related_name='posts',
+        verbose_name='Автор',
+        help_text='Автор поста',
     )
     group = models.ForeignKey(
         Group,
@@ -34,7 +43,7 @@ class Post(models.Model):
         related_name='group_of_posts'
     )
     image = models.ImageField(
-        'Картинка',
+        verbose_name='Картинка',
         upload_to='posts/',
         blank=True
     )
@@ -50,6 +59,7 @@ class Comment(models.Model):
     post = models.ForeignKey(
         Post,
         verbose_name='Пост',
+        help_text='Пост с комментарием',
         on_delete=models.CASCADE,
         related_name='comments',
     )
@@ -57,6 +67,8 @@ class Comment(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='comments',
+        verbose_name='Автор комментария',
+        help_text='Автор комментария',
     )
     text = models.TextField(
         verbose_name='Комментарий',
@@ -72,6 +84,7 @@ class Follow(models.Model):
     user = models.ForeignKey(
         User,
         verbose_name='follower',
+        help_text='Фолловер',
         blank=True,
         related_name='follower',
         on_delete=models.CASCADE,
@@ -79,7 +92,11 @@ class Follow(models.Model):
     author = models.ForeignKey(
         User,
         verbose_name='following',
+        help_text='Избранный автор',
         blank=True,
         related_name='following',
         on_delete=models.CASCADE,
     )
+
+    class Meta:
+        unique_together = ['user', 'author']

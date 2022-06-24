@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Post, Group, User, Comment, Follow
+from .models import Post, Group, User, Follow
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from .forms import PostForm, CommentForm
@@ -31,15 +31,12 @@ def profile(request, username):
     posts = (Post.objects.select_related('author')
              .filter(author__username=username))
     page_obj = make_paginator(request, posts)
-    if Follow.objects.filter(author=author).exists():
-        following = True
-    else:
-        following = False
     context = {
         'author': author,
         'page_obj': page_obj,
-        'following': following,
     }
+    if Follow.objects.filter(author=author).exists():
+        context['following'] = True
     return render(request, 'posts/profile.html', context)
 
 
@@ -47,13 +44,11 @@ def post_detail(request, post_id):
     post = Post.objects.get(id=post_id)
     count = (Post.objects.select_related('author')
              .filter(author__username=post.author).count())
-    form = CommentForm(request.POST or None)
-    comments = Comment.objects.filter(post=post_id)
+    form = CommentForm()
     context = {
         'count': count,
         'post': post,
         'form': form,
-        'comments': comments,
     }
     return render(request, 'posts/post_detail.html', context)
 
@@ -119,17 +114,14 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    if request.user.is_authenticated:
-        author = get_object_or_404(User, username=username)
-        if (
-            request.user.username == username
-            or Follow.objects.filter(user=request.user, author=author).exists()
-        ):
-            return redirect('posts:profile', username=username)
-        Follow.objects.create(user=request.user, author=author)
+    author = get_object_or_404(User, username=username)
+    if (
+        request.user.username == username
+        or Follow.objects.filter(user=request.user, author=author).exists()
+    ):
         return redirect('posts:profile', username=username)
-    else:
-        return redirect('users:sungup')
+    Follow.objects.create(user=request.user, author=author)
+    return redirect('posts:profile', username=username)
 
 
 @login_required
