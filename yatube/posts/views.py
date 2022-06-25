@@ -4,8 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from .forms import PostForm, CommentForm
 from .func import make_paginator
+from django.views.decorators.cache import cache_page
 
 
+@cache_page(20, key_prefix='index_page')
 def index(request):
     post_list = Post.objects.all()
     page_obj = make_paginator(request, post_list)
@@ -35,8 +37,10 @@ def profile(request, username):
         'author': author,
         'page_obj': page_obj,
     }
-    if Follow.objects.filter(author=author).exists():
-        context['following'] = True
+    if request.user.is_authenticated:
+        context['following'] = (
+            Follow.objects.filter(user=request.user, author=author).exists()
+        )
     return render(request, 'posts/profile.html', context)
 
 

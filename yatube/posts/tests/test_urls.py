@@ -1,5 +1,4 @@
 from django.core.cache import cache
-from django.core.cache.utils import make_template_fragment_key
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
@@ -32,6 +31,7 @@ class PostURLTests(TestCase):
         self.user = User.objects.create_user(username='user')
         self.authorized_client.force_login(self.user)
         self.auth_of_post.force_login(self.auth)
+        cache.clear()
 
     def test_urls_exists_at_desired_location(self):
         """Страницы '/', '/group/test-slug/', '/profile/user/',
@@ -68,6 +68,42 @@ class PostURLTests(TestCase):
         )
         self.assertRedirects(response, f'/posts/{self.post.id}/')
 
+    def test_add_comment_url_redirect_authorized_client_on_post_detail(self):
+        """Страница по адресу /posts/post_id/comment/ перенаправит комментатора
+        на страницу информации о посте."""
+        response = self.authorized_client.get(
+            f'/posts/{self.post.id}/comment/', follow=True
+        )
+        self.assertRedirects(response, f'/posts/{self.post.id}/')
+
+    def test_prifile_follow_url_redirect_authorized_client_on_post_detail(
+        self
+    ):
+        """Страница по адресу /posts/post_id/follow/ подписавшегося
+        на страницу информации о посте."""
+        response = self.authorized_client.get(
+            f'/profile/{self.post.author.username}/follow/',
+            follow=True
+        )
+        self.assertRedirects(
+            response,
+            f'/profile/{self.post.author.username}/'
+        )
+
+    def test_prifile_unfollow_url_redirect_authorized_client_on_post_detail(
+        self
+    ):
+        """Страница по адресу /posts/post_id/unfollow/ отписавшегося
+        на страницу информации о посте."""
+        response = self.authorized_client.get(
+            f'/profile/{self.post.author.username}/unfollow/',
+            follow=True
+        )
+        self.assertRedirects(
+            response,
+            f'/profile/{self.post.author.username}/'
+        )
+
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
         url_names_templates = {
@@ -90,12 +126,11 @@ class PostURLTests(TestCase):
             author=self.user,
             group=self.group,
         )
-        key = make_template_fragment_key('index_page')
         response = self.authorized_client.get(reverse('posts:index'))
         page_content = response.content
         object_to_delete.delete()
         response = self.authorized_client.get(reverse('posts:index'))
         self.assertEqual(page_content, response.content)
-        cache.delete(key)
+        cache.clear()
         response = self.authorized_client.get(reverse('posts:index'))
         self.assertNotEqual(page_content, response.content)

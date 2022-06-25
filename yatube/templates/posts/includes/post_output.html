@@ -1,7 +1,6 @@
 {% load thumbnail %}
 <ul>
-  {% if without_author_field %}
-  {% else %}
+  {% if not without_author_field %}
     <li>
       <a href="{% url 'posts:profile' post.author.username %}">
       Автор: {{ post.author.get_full_name }} {{ post.author.username }}
@@ -21,8 +20,7 @@
     подробная информация 
   </a>
 </p>
-{% if without_group_field %}
-{% else %}
+{% if not without_group_field %}
   {% if post.group %}   
     <a href="{% url 'posts:group_list' post.group.slug %}">
       все записи группы

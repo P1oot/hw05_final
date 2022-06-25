@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -53,6 +54,7 @@ class PostVievsTests(TestCase):
         self.user_2 = User.objects.create_user(username='user_2')
         self.authorized_client_1.force_login(self.user_1)
         self.authorized_client_2.force_login(self.user_2)
+        cache.clear()
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -201,6 +203,7 @@ class PaginatorViewsTest(TestCase):
                 author=cls.auth,
                 group=cls.group,
             )
+        cache.clear()
 
     def template_name_creation(self):
         """Создание словаря с шаблонами"""
