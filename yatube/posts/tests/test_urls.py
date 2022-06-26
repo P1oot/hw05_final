@@ -60,49 +60,20 @@ class PostURLTests(TestCase):
         response = self.authorized_client.get('/create/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_post_edit_url_redirect_not_author_on_post_detail(self):
-        """Страница по адресу /posts/post_id/edit/ перенаправит не автора
-        поста на страницу информации о посте."""
-        response = self.authorized_client.get(
-            f'/posts/{self.post.id}/edit/', follow=True
-        )
-        self.assertRedirects(response, f'/posts/{self.post.id}/')
-
-    def test_add_comment_url_redirect_authorized_client_on_post_detail(self):
-        """Страница по адресу /posts/post_id/comment/ перенаправит комментатора
+    def test__url_redirect_authorized_client_on_post_detail(self):
+        """Страницы перенаправляют авторизованного автора
         на страницу информации о посте."""
-        response = self.authorized_client.get(
-            f'/posts/{self.post.id}/comment/', follow=True
-        )
-        self.assertRedirects(response, f'/posts/{self.post.id}/')
-
-    def test_prifile_follow_url_redirect_authorized_client_on_post_detail(
-        self
-    ):
-        """Страница по адресу /posts/post_id/follow/ подписавшегося
-        на страницу информации о посте."""
-        response = self.authorized_client.get(
-            f'/profile/{self.post.author.username}/follow/',
-            follow=True
-        )
-        self.assertRedirects(
-            response,
-            f'/profile/{self.post.author.username}/'
-        )
-
-    def test_prifile_unfollow_url_redirect_authorized_client_on_post_detail(
-        self
-    ):
-        """Страница по адресу /posts/post_id/unfollow/ отписавшегося
-        на страницу информации о посте."""
-        response = self.authorized_client.get(
-            f'/profile/{self.post.author.username}/unfollow/',
-            follow=True
-        )
-        self.assertRedirects(
-            response,
-            f'/profile/{self.post.author.username}/'
-        )
+        template_answer = {
+            f'/posts/{self.post.id}/edit/': HTTPStatus.FOUND,
+            f'/posts/{self.post.id}/comment/': HTTPStatus.FOUND,
+            f'/profile/{self.post.author.username}/follow/': HTTPStatus.FOUND,
+            f'/profile/{self.post.author.username}/unfollow/':
+            HTTPStatus.FOUND,
+        }
+        for template, answer in template_answer.items():
+            with self.subTest(template=template):
+                response = self.guest_client.get(template)
+                self.assertEqual(response.status_code, answer)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
