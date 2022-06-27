@@ -64,16 +64,17 @@ class PostURLTests(TestCase):
         """Страницы перенаправляют авторизованного автора
         на страницу информации о посте."""
         template_answer = {
-            f'/posts/{self.post.id}/edit/': HTTPStatus.FOUND,
-            f'/posts/{self.post.id}/comment/': HTTPStatus.FOUND,
-            f'/profile/{self.post.author.username}/follow/': HTTPStatus.FOUND,
+            f'/posts/{self.post.id}/edit/': f'/posts/{self.post.id}/',
+            f'/posts/{self.post.id}/comment/': f'/posts/{self.post.id}/',
+            f'/profile/{self.post.author.username}/follow/':
+            f'/profile/{self.post.author.username}/',
             f'/profile/{self.post.author.username}/unfollow/':
-            HTTPStatus.FOUND,
+            f'/profile/{self.post.author.username}/',
         }
         for template, answer in template_answer.items():
             with self.subTest(template=template):
-                response = self.guest_client.get(template)
-                self.assertEqual(response.status_code, answer)
+                response = self.authorized_client.get(template, follow=True)
+                self.assertRedirects(response, answer)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
